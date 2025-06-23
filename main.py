@@ -50,6 +50,42 @@ if not todos:
     st.info("No todos found. Add a new todo to get started!")
 else:
     for todo in todos:
-        st.write(f"## {todo[1]}")
-        st.write(f"**Description:** {todo[2]}")
+        todo_id = todo[0]
+        title = todo[1]
+        description = todo[2]
+        status = todo[3]
+
+        col1, col2 = st.columns([0.1, 0.9])
+
+        with col1:
+            checkbox_state = st.checkbox(
+                "",
+                value= status == "Completed",
+                key=f"checkbox_{todo_id}",
+            )
         
+        with col2:
+            if checkbox_state:  # Nếu checkbox được tích
+                st.markdown(f"~~**{title}**~~")
+                if description:
+                    st.caption(f"~~{description}~~")
+            else:
+                st.markdown(f"**{title}**")
+                if description:
+                    st.caption(description)
+
+        if checkbox_state != (status == "Completed"):
+            if checkbox_state:  # Nếu checkbox được tích (hoàn thành)
+                # Hiển thị hộp thoại xác nhận
+                st.warning("⚠️ You sure you want to complete this task?")
+                
+                if st.button("✅ Confirm", key=f"confirm_{todo_id}"):
+                    # Xóa todo khỏi database
+                    if db.delete_todo(todo_id):
+                        st.success(f"Todo '{title}' completed and removed!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to remove todo!")
+                
+        
+        st.divider()
