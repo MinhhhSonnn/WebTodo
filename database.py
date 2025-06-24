@@ -1,5 +1,6 @@
 import mysql.connector
 from datetime import datetime
+import streamlit as st
 
 class MySQLDatabaseManager:
     def __init__(self, host="localhost", user="root", password="", database="todo_db"):
@@ -29,17 +30,17 @@ class MySQLDatabaseManager:
     def get_all_todos(self):
         """Get all todos"""
         try:
-            self.cursor.execute("SELECT * FROM todos ORDER BY created_at DESC")
+            self.cursor.execute("SELECT * FROM todos ORDER BY id DESC")
             return self.cursor.fetchall()
         except mysql.connector.Error as e:
             print(f"Error getting data: {e}")
             return []
     
-    def add_todo(self, title, description=""):
-        """Add new todo"""
+    def add_todo(self, title, description="", deadline=None):
+        """Add new todo with deadline"""
         try:
-            insert_query = "INSERT INTO todos (title, description) VALUES (%s, %s)"
-            self.cursor.execute(insert_query, (title, description))
+            insert_query = "INSERT INTO todos (title, description, deadline) VALUES (%s, %s, %s)"
+            self.cursor.execute(insert_query, (title, description, deadline))
             self.conn.commit()
             return self.cursor.lastrowid
         except mysql.connector.Error as e:
@@ -70,6 +71,17 @@ class MySQLDatabaseManager:
             return True
         except mysql.connector.Error as e:
             print(f"Error deleting todo: {e}")
+            return False
+    
+    def update_todo(self, todo_id, new_title, new_description, new_deadline):
+        """Update title, description, and deadline of a todo"""
+        try:
+            update_query = "UPDATE todos SET title = %s, description = %s, deadline = %s WHERE id = %s"
+            self.cursor.execute(update_query, (new_title, new_description, new_deadline, todo_id))
+            self.conn.commit()
+            return True
+        except mysql.connector.Error as e:
+            print(f"Error updating todo: {e}")
             return False
     
     def close(self):
